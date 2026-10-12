@@ -37,8 +37,17 @@ ignores the reply. Use TRS for MIDI. USB is still fine for the M8's audio.
    *replied*, then to *connected* once the M8 starts sending LEDs. The M8's screen
    shows LAUNCHPAD CONNECTED.
 
-For Push 3 Standalone, copy the frozen device to the Push (drag it onto the Push in
-Live's browser) and build the same track there.
+### Push 3 Standalone
+
+1. Copy the **frozen** device to the Push: drag it onto the Push in Live's browser.
+   An unfrozen copy can't find its script on the Push, so it sits at *waiting*.
+2. On the Push, create a MIDI track with the same settings: MIDI From and MIDI To
+   = External Port, and **Monitor = In**. A new track on the Push defaults to
+   Monitor *Auto*, which only listens while the track is armed, so the device
+   would never hear the M8.
+3. Drop the device on the track and select it.
+
+Save that track or Set as your starting template so you don't have to repeat this.
 
 ## Using it
 
@@ -82,6 +91,8 @@ Selecting any other track also releases the Push.
 
 ## Troubleshooting
 
+- **Launchpad stays at *waiting*.** The device's script isn't running. On the
+  Push, make sure you loaded the frozen build, not an older or unfrozen copy.
 - **Pads stay dark but the controls work.** Check that the track's MIDI From is
   the Push's External Port and Monitor is In. The device keeps introducing itself
   until the M8 answers. If you turned on Launchpad mode on the M8 later, give it a
