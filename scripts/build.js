@@ -101,6 +101,7 @@ function createPatch() {
     };
     if (maxclass === "live.tab") { b.num_lines_patching = 1; b.num_lines_presentation = 1; }
     if (opts.pres) { b.presentation = 1; b.presentation_rect = opts.pres; }
+    if (opts.attrs) Object.assign(b, opts.attrs);
     return add(b);
   }
   function connect(from, outlet, to, inlet) {
@@ -177,7 +178,7 @@ function addReadouts(p, js, names, x0, y0, presX0, presY0) {
     const row = Math.floor(i / 6);
     const nb = p.param("live.numbox", r[1], r[2], x0 + i * 64, y0 + 60, {
       type: r[3] ? 2 : 1, enumList: r[3], max: r[3] ? r[3].length - 1 : 999999,
-      pres: [presX0 + col * 74, presY0 + row * 40 + 14, 60, 15], w: 60
+      pres: [presX0 + col * 74, presY0 + row * 40 + 14, 60, 15], w: 60, attrs: r[4]
     });
     p.comment(r[1], x0 + i * 64, y0 + 82, 60, [presX0 + col * 74, presY0 + row * 40, 72, 16]);
     p.connect(route, i, nb, 0);
@@ -402,11 +403,18 @@ function buildRelease() {
   p.connect(js, 0, midiout, 0);
   // midiin is deliberately NOT wired to midiout: the M8 must never hear its own traffic.
 
-  // Two status readouts only.
+  // One status readout (not clickable) and the Push switch.
   addReadouts(p, js, [
-    ["state", "Launchpad", "Launchpad", ["waiting", "asked", "replied", "connected"]],
-    ["takeover", "Push", "Push", ["released", "active"]]
+    ["state", "Launchpad", "Launchpad", ["waiting", "asked", "replied", "connected"], { ignoreclick: 1 }]
   ], 24, 420, 8, 4);
+
+  // Push switch: M8 = take over the Push while this track is selected,
+  // Live = leave the Push alone (releases everything immediately).
+  const pushSw = p.param("live.tab", "Push", "Push", 120, 300, { type: 2, enumList: ["M8", "Live"], max: 1, initial: 0, w: 120, h: 18, pres: [82, 18, 120, 18] });
+  p.comment("Push goes to", 120, 280, 120, [82, 4, 120, 14]);
+  const pushInv = p.obj("!- 1", 120, 330);
+  const pushPrep = p.obj("prepend push_switch", 120, 360);
+  p.connect(pushSw, 0, pushInv, 0); p.connect(pushInv, 0, pushPrep, 0); p.connect(pushPrep, 0, js, 0);
 
   const padVel = p.param("live.tab", "Pad Velocity", "PadVel", 24, 360, { type: 2, enumList: ["native", "fixed"], max: 1, initial: 1, w: 120, h: 18, pres: [8, 60, 120, 18] });
   p.comment("Pad velocity", 24, 340, 120, [8, 46, 120, 14]);

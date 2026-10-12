@@ -317,6 +317,36 @@ test("bridge: track-select buttons pass through to Live by default, toggle to M8
   assert.deepStrictEqual(m.out.midi, [0xB0, 101, 127]);
 });
 
+test("bridge: Push switch off releases everything while selected; on takes it back", () => {
+  const m = makeMax({ selectedTrack: 7 });
+  m.load(BRIDGE);
+  m.send("out_path", 0);
+  m.send("start");
+  m.runTasks(1);
+  assert(m.out.grabs.includes("Button_Matrix"));
+  const grabbed = m.out.grabs.slice();
+  m.send("push_switch", 0);
+  assert(m.out.releases.includes("Button_Matrix"), "matrix released");
+  assert(m.out.releases.includes("Play_Button"), "border buttons released");
+  assert(m.out.releases.includes("Page_Right_Button"), "chord buttons released");
+  m.out.grabs.length = 0; m.out.midi.length = 0;
+  m.press("Play_Button", 127);
+  assert.deepStrictEqual(m.out.midi, [], "released buttons no longer reach the M8");
+  m.send("push_switch", 1);
+  assert(m.out.grabs.includes("Button_Matrix"), "taken back while selected");
+  assert(grabbed.length > 0);
+});
+
+test("bridge: Push switch set off before start never grabs", () => {
+  const m = makeMax({ selectedTrack: 7 });
+  m.load(BRIDGE);
+  m.send("push_switch", 0);
+  m.send("out_path", 0);
+  m.send("start");
+  m.runTasks(1);
+  assert.deepStrictEqual(m.out.grabs, []);
+});
+
 test("bridge: learn assigns the next pressed Push button to Shift+Left", () => {
   const m = makeMax({ selectedTrack: 7 });
   m.load(BRIDGE);

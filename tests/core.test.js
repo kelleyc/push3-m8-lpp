@@ -172,6 +172,21 @@ test("pad <-> LPP note corners", () => {
   }
 });
 
+test("Push system buttons are never taken automatically", () => {
+  const names = ["Setup_Button", "Add_Device_Button", "Browse_Mode_Button", "Fixed_Length_Button",
+    "Quantization_Button", "Shift_Button", "Select_Button", "Clip_Mode_Button", "Sets_Button", "Layout",
+    "Track_State_Button0", "Track_State_Button4"];
+  const r = map.resolveBorderMap(names);
+  const taken = Object.values(r.byLpp);
+  ["Setup_Button", "Add_Device_Button", "Fixed_Length_Button", "Quantization_Button", "Shift_Button",
+    "Clip_Mode_Button", "Sets_Button", "Track_State_Button0", "Track_State_Button4"]
+    .forEach((n) => assert(!taken.includes(n), n + " must stay with Push"));
+  assert.strictEqual(r.byLpp[98], "Browse_Mode_Button");
+  assert.strictEqual(r.byLpp[97], "Layout", "Push 3 names its Layout button just 'Layout'");
+  const o = map.resolveBorderMap(names, { 98: "Setup_Button" });
+  assert.strictEqual(o.byLpp[98], "Setup_Button", "explicit override still allowed");
+});
+
 test("border resolver uses confirmed names and reports the rest", () => {
   const names = ["Select_Button", "Shift_Button", "Global_Mute_Button", "Global_Solo_Button",
     "Record_Button", "Play_Button", "Up_Arrow", "Down_Arrow", "Left_Arrow", "Right_Arrow",
@@ -185,8 +200,9 @@ test("border resolver uses confirmed names and reports the rest", () => {
   assert.strictEqual(r.byLpp[89], "Scene_Launch_Button7"); // top scene = highest index
   assert.strictEqual(r.byLpp[19], "Scene_Launch_Button0");
   assert.strictEqual(r.byLpp[101], "Track_Select_Button0");
-  assert.strictEqual(r.byLpp[1], "Track_State_Button0");
-  assert.strictEqual(r.byLpp[4], "Track_State_Button3");
+  assert.strictEqual(r.byLpp[1], undefined, "display-row buttons are left to Push");
+  assert.strictEqual(r.byLpp[4], undefined);
+  assert(!Object.values(r.byLpp).some((n) => /^Track_State_Button/.test(n)));
   assert(!Object.values(r.byLpp).includes("Shift_Button"));
   assert(r.missing.includes(102) && r.missing.includes(95));
   const o = map.resolveBorderMap(names, { 95: "Shift_Button", 90: "-" });

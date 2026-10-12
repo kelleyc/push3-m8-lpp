@@ -48,30 +48,37 @@ Live's browser) and build the same track there.
 | Row buttons (right column) | Scene launch buttons |
 | Arrows | Arrows (Page Left / Right send Shift+Left / Shift+Right) |
 | Shift | Select |
+| Session, Note, Sequencer | Session, Note, Layout |
 | Play, Record | Play, Record |
+| Clear, Duplicate | Delete, Duplicate |
 | Mute, Solo | Mute, Solo |
 | T1–T8 track buttons | Track select buttons (see **Track Buttons** below) |
 
-The other Launchpad buttons map to the nearest Push equivalent. The full map is in
-[`core/push-map.js`](core/push-map.js).
+Only buttons the M8 uses are taken, and Push's own system buttons (Setup, Sets,
+Save, Add, Undo, Fixed Length, Quantize, the display rows and so on) are never
+touched. The Launchpad's Projects and Rec Arm buttons have no Push equivalent and
+are left unmapped. The full map is in [`core/push-map.js`](core/push-map.js).
 
 The M8 uses Mute and Solo with the T1–T8 track buttons. Press Mute or Solo, then a
 track button to toggle that track. Press Mute or Solo again to make it momentary.
 
 ### Settings
 
+- **Push goes to:** *M8* (default) takes over the Push while the device's track is
+  selected. *Live* releases every pad and button straight away and leaves the Push
+  alone, even with the track selected.
 - **Pad Velocity:** *fixed* (default) sends a constant velocity on every pad press.
   *native* passes the Push's pad velocity through.
 - **Track Buttons:** *Live* (default) leaves the Push's track select buttons to
   Live, so you can still switch tracks. *M8* sends them to the M8 as T1–T8, which
   you need for Mute and Solo.
 
-### Readouts
+Selecting any other track also releases the Push.
+
+### Status
 
 - **Launchpad:** *waiting* → *replied* (the device has introduced itself) →
   *connected* (LED data is arriving from the M8).
-- **Push:** *active* while the device owns the Push, *released* otherwise. Select
-  another track to release it.
 
 ## Troubleshooting
 

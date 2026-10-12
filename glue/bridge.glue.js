@@ -45,6 +45,7 @@ var chordControls = {};     // control name -> { id, api, obs, grabbed }
 var LEARN = null;           // { list, label, started } while waiting for a Push button
 var learnObs = {};          // control name -> { id, obs } (only controls not otherwise grabbed)
 var TAKEOVER_ACTIVE = false;
+var TAKEOVER_ENABLED = true; // the device's Push switch: off = never take the Push
 var OWNER_TRACK_ID = 0;
 var SELECTED_TRACK_ID = 0;
 var GATING = false;
@@ -228,7 +229,9 @@ function ensurePads() {
 function resolveBorders() {
   borderMap = PushMap.resolveBorderMap(controlNames, mapOverrides);
   var mapped = 0;
-  for (var k in borderMap.byLpp) if (borderMap.byLpp.hasOwnProperty(k)) mapped += 1;
+  var pairs = [];
+  for (var k in borderMap.byLpp) if (borderMap.byLpp.hasOwnProperty(k)) { mapped += 1; pairs.push(k + "=" + borderMap.byLpp[k]); }
+  P("border map: " + pairs.join(" "));
   outlet(1, "mapped", mapped); // eslint-disable-line no-undef
   outlet(1, "missing", borderMap.missing.length); // eslint-disable-line no-undef
   return mapped;
@@ -350,6 +353,16 @@ function applyTrackOverrides() {
   for (var t = 101; t <= 108; t += 1) {
     if (TRACK_LIVE) mapOverrides[t] = "-"; else delete mapOverrides[t];
   }
+}
+
+// The device's Push switch. Off releases every control at once and keeps the
+// Push free even while this track is selected; on takes it back if selected.
+function push_switch(v) {
+  TAKEOVER_ENABLED = Number(v) > 0;
+  P("Push switch:", TAKEOVER_ENABLED ? "on (M8 takes the Push while this track is selected)" : "off");
+  if (!GATING) { if (!TAKEOVER_ENABLED && TAKEOVER_ACTIVE) releaseall(); return; } // not started yet: start() applies it
+  applyTrackSelection();
+  publish(true);
 }
 
 function track_btns(v) {
@@ -480,6 +493,7 @@ function scheduleGrabRetry() {
 function graball() {
   _grabRetryTask = cancelTask(_grabRetryTask);
   if (__dying) return;
+  if (!TAKEOVER_ENABLED) return;
   if (GATING && OWNER_TRACK_ID !== SELECTED_TRACK_ID) return;
   if (TARGET < 0 && !findSurface()) { scheduleGrabRetry(); return; }
   if (!ensureMatrix() || ensurePads() < 64) { scheduleGrabRetry(); return; }
@@ -516,14 +530,14 @@ function releaseall() {
 function applyTrackSelection() {
   _takeoverTask = null;
   if (__dying || !GATING) return;
-  if (OWNER_TRACK_ID === SELECTED_TRACK_ID) {
+  if (OWNER_TRACK_ID === SELECTED_TRACK_ID && TAKEOVER_ENABLED) {
     if (!TAKEOVER_ACTIVE) { P("M8 CTRL selected: taking over Push"); graball(); }
     return;
   }
   if (TAKEOVER_ACTIVE) {
     _grabRetryTask = cancelTask(_grabRetryTask);
     releaseall();
-    P("another track selected: Push released");
+    P(TAKEOVER_ENABLED ? "another track selected: Push released" : "Push switch off: Push released");
   }
 }
 
