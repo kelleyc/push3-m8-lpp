@@ -1,0 +1,14 @@
+{
+  "name": "push3-m8-lpp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Push 3 Standalone as a Launchpad Pro MK3 for the Dirtywave M8 (Max for Live), plus the S2 handshake gate device.",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test": "node scripts/build.js && node tests/run-all.js"
+  },
+  "devDependencies": {
+    "acorn": "^8.11.0"
+  },
+  "license": "UNLICENSED"
+}
